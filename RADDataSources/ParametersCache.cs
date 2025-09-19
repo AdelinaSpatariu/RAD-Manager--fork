@@ -9,12 +9,12 @@
 	public class ParametersCache : RadUtils.ParametersCache
 	{
 		private readonly IGQILogger _logger = null;
-		private readonly ConnectionHelper _connectionHelper;
+		private readonly GQIDMS _dms;
 
-		public ParametersCache(IGQILogger logger, ConnectionHelper connectionHelper)
+		public ParametersCache(IGQILogger logger, GQIDMS dms)
 		{
 			_logger = logger;
-			_connectionHelper = connectionHelper ?? throw new System.ArgumentNullException(nameof(connectionHelper));
+			_dms = dms ?? throw new System.ArgumentNullException(nameof(dms));
 		}
 
 		protected override void LogError(string message)
@@ -24,7 +24,7 @@
 
 		protected override DMSMessage SendSingleResponseMessage(DMSMessage request)
 		{
-			return _connectionHelper.Connection.HandleSingleResponseMessage(request);
+			return _dms.SendMessage(request);
 		}
 	}
 }

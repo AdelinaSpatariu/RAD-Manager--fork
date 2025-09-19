@@ -15,18 +15,19 @@ namespace RadDataSources
 	[GQIMetaData(Name = "Get Relational Anomaly Groups")]
 	public class RelationalAnomalyGroupsDataSource : IGQIDataSource, IGQIOnInit, IGQIOnPrepareFetch
 	{
+		private RadHelper _radHelper;
 		private ElementNameCache _elementNames;
 		private ParametersCache _parameters;
 		private GQIDMS _dms;
 		private IGQILogger _logger;
 		private IEnumerator<int> _dmaIDEnumerator;
-		private ConnectionHelper _connectionHelper;
 
 		public OnInitOutputArgs OnInit(OnInitInputArgs args)
 		{
 			_dms = args.DMS;
 			_logger = args.Logger;
-			_connectionHelper = new ConnectionHelper(_dms, _logger);
+			_radHelper = ConnectionHelper.InitializeRadHelper(_dms, _logger);
+
 			return default;
 		}
 
@@ -55,8 +56,8 @@ namespace RadDataSources
 				.Distinct()
 				.GetEnumerator();
 
-			_elementNames = new ElementNameCache(_logger, _connectionHelper);
-			_parameters = new ParametersCache(_logger, _connectionHelper);
+			_elementNames = new ElementNameCache(_logger, _dms);
+			_parameters = new ParametersCache(_logger, _dms);
 
 			return default;
 		}
@@ -67,7 +68,7 @@ namespace RadDataSources
 				return new GQIPage(Array.Empty<GQIRow>());
 
 			int dataMinerID = _dmaIDEnumerator.Current;
-			var groupNames = _connectionHelper.RadHelper.FetchParameterGroups(dataMinerID);
+			var groupNames = _radHelper.FetchParameterGroups(dataMinerID);
 			if (groupNames == null)
 			{
 				_logger.Error($"Could not fetch RAD group names from agent {dataMinerID}: no response or response of the wrong type received");
@@ -85,7 +86,7 @@ namespace RadDataSources
 			RadGroupInfo groupInfo;
 			try
 			{
-				groupInfo = _connectionHelper.RadHelper.FetchParameterGroupInfo(dataMinerID, groupName);
+				groupInfo = _radHelper.FetchParameterGroupInfo(dataMinerID, groupName);
 			}
 			catch (DataMinerSecurityException)
 			{
@@ -122,15 +123,15 @@ namespace RadDataSources
 				int minumumAnomalyDuration;
 				if (subgroupInfo.Options != null)
 				{
-					anomalyThreshold = subgroupInfo.Options.GetAnomalyThresholdOrDefault(_connectionHelper.RadHelper,
+					anomalyThreshold = subgroupInfo.Options.GetAnomalyThresholdOrDefault(_radHelper,
 						groupInfo.Options?.AnomalyThreshold);
-					minumumAnomalyDuration = subgroupInfo.Options.GetMinimalDurationOrDefault(_connectionHelper.RadHelper,
+					minumumAnomalyDuration = subgroupInfo.Options.GetMinimalDurationOrDefault(_radHelper,
 						groupInfo.Options?.MinimalDuration);
 				}
 				else
 				{
-					anomalyThreshold = _connectionHelper.RadHelper.DefaultAnomalyThreshold;
-					minumumAnomalyDuration = _connectionHelper.RadHelper.DefaultMinimumAnomalyDuration;
+					anomalyThreshold = _radHelper.DefaultAnomalyThreshold;
+					minumumAnomalyDuration = _radHelper.DefaultMinimumAnomalyDuration;
 				}
 
 				yield return new GQIRow(

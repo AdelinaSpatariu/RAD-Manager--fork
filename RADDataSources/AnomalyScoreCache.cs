@@ -53,7 +53,7 @@
 		private readonly object _anomalyScoreDataLock = new object();
 		private readonly List<AnomalyScoreData> _anomalyScoreData = new List<AnomalyScoreData>();
 
-		public List<KeyValuePair<DateTime, double>> GetAnomalyScores(ConnectionHelper helper, IRadGroupID groupID,
+		public List<KeyValuePair<DateTime, double>> GetAnomalyScores(RadHelper helper, IRadGroupID groupID,
 			DateTime startTime, DateTime endTime, bool skipCache)
 		{
 			lock (_anomalyScoreDataLock)
@@ -78,7 +78,7 @@
 			}
 		}
 
-		private AnomalyScoreData UpdateAnomalyScoreData(ConnectionHelper helper, IRadGroupID groupID, DateTime startTime,
+		private AnomalyScoreData UpdateAnomalyScoreData(RadHelper helper, IRadGroupID groupID, DateTime startTime,
 			DateTime endTime)
 		{
 			DateTime now = DateTime.UtcNow;
@@ -89,7 +89,7 @@
 				var requestEndTime = Max(now, endTime);
 				List<KeyValuePair<DateTime, double>> anomalyScores = null;
 
-				anomalyScores = FetchAnomalyScore(helper.RadHelper, groupID, requestStartTime, requestEndTime);
+				anomalyScores = FetchAnomalyScore(helper, groupID, requestStartTime, requestEndTime);
 				if (anomalyScores == null)
 					throw new DataMinerCommunicationException("No response or a response of the wrong type received");
 

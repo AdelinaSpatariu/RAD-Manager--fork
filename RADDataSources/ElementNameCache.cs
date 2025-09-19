@@ -11,12 +11,12 @@
 	public class ElementNameCache : Cache<string>
 	{
 		private readonly IGQILogger _logger = null;
-		private readonly ConnectionHelper _connectionHelper;
+		private readonly GQIDMS _dms;
 
-		public ElementNameCache(IGQILogger logger, ConnectionHelper connectionHelper) : base(1000)
+		public ElementNameCache(IGQILogger logger, GQIDMS dms) : base(1000)
 		{
 			_logger = logger;
-			_connectionHelper = connectionHelper ?? throw new ArgumentNullException(nameof(connectionHelper));
+			_dms = dms ?? throw new ArgumentNullException(nameof(dms));
 		}
 
 		protected override bool Fetch(int dataMinerID, int elementID, out string value)
@@ -24,7 +24,7 @@
 			try
 			{
 				var elementRequest = new GetElementByIDMessage(dataMinerID, elementID);
-				var elementResponse = _connectionHelper.Connection.HandleSingleResponseMessage(elementRequest) as ElementInfoEventMessage;
+				var elementResponse = _dms.SendMessage(elementRequest) as ElementInfoEventMessage;
 
 				if (elementResponse == null)
 				{

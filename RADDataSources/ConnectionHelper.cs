@@ -10,7 +10,7 @@
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Utils.RadToolkit;
 
-	public class ConnectionHelper
+	public static class ConnectionHelper
 	{
 		private const string APPLICATION_NAME = "GQI RAD data sources";
 		private static readonly object _connectionDictLock = new object();
@@ -20,21 +20,23 @@
 		/// </summary>
 		private static readonly Dictionary<string, Connection> _connectionDict = new Dictionary<string, Connection>();
 
-		public ConnectionHelper(GQIDMS dms, IGQILogger logger)
+		public static RadHelper InitializeRadHelper(GQIDMS dms, IGQILogger logger)
 		{
 			if (dms == null)
 				throw new ArgumentNullException(nameof(dms));
 
-			Connection = InitializeConnection(dms, logger);
-			RadHelper = new RadHelper(Connection, new Logger(s => logger.Error(s)));
+			logger.Information("Trying to directly connect to DataMiner through GQI.");
+			var radHelper = new RadHelper(dms.GetConnection(), new Logger(s => logger.Error(s)));
+			if (radHelper?.AllowGQISendAnalyticsMessages == true)
+			{
+				logger.Information("Successfully connected to DataMiner through GQI.");
+				return radHelper;
+			}
+
+			logger.Information("DataMiner too old to support connecting through GQI. Connecting to DataMiner using an external connection.");
+			var connection = InitializeConnection(dms, logger);
+			return new RadHelper(connection, new Logger(s => logger.Error(s)));
 		}
-
-		/// <summary>
-		/// Gets the connection to the DataMiner Agent.
-		/// </summary>
-		public Connection Connection { get; private set; }
-
-		public RadHelper RadHelper { get; private set; }
 
 		private static Connection InitializeConnection(GQIDMS dms, IGQILogger logger)
 		{
@@ -44,6 +46,7 @@
 				if (_connectionDict.TryGetValue(userDomainName, out var existingConnection) && !existingConnection.IsShuttingDown)
 					return existingConnection;
 
+				logger.Information("No existing connection found, creating a new one.");
 				var attributes = ConnectionAttributes.AllowMessageThrottling;
 				try
 				{
@@ -51,6 +54,7 @@
 					connection.ClientApplicationName = APPLICATION_NAME;
 					connection.AuthenticateUsingTicket(RequestCloneTicket(dms));
 					_connectionDict[userDomainName] = connection;
+					logger.Information("Successfully connected.");
 
 					return connection;
 				}

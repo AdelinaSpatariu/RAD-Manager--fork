@@ -21,6 +21,7 @@ namespace RadDataSources
 		private static readonly GQIDateTimeArgument EndTime = new GQIDateTimeArgument("End Time");
 		private static readonly GQIBooleanArgument SkipCache = new GQIBooleanArgument("Skip Cache");
 		private static readonly AnomalyScoreCache _anomalyScoreCache = new AnomalyScoreCache();
+		private RadHelper _radHelper;
 		private List<KeyValuePair<DateTime, double>> _anomalyScores = new List<KeyValuePair<DateTime, double>>();
 		private int _dataMinerID = -1;
 		private string _groupName = string.Empty;
@@ -30,12 +31,12 @@ namespace RadDataSources
 		private DateTime? _startTime = null;
 		private DateTime? _endTime = null;
 		private IGQILogger _logger;
-		private ConnectionHelper _connectionHelper;
 
 		public OnInitOutputArgs OnInit(OnInitInputArgs args)
 		{
-			_connectionHelper = new ConnectionHelper(args.DMS, args.Logger);
 			_logger = args.Logger;
+			_radHelper = ConnectionHelper.InitializeRadHelper(args.DMS, _logger);
+
 			return default;
 		}
 
@@ -93,7 +94,7 @@ namespace RadDataSources
 
 			try
 			{
-				_anomalyScores = _anomalyScoreCache.GetAnomalyScores(_connectionHelper, groupID, _startTime.Value, _endTime.Value, _skipCache);
+				_anomalyScores = _anomalyScoreCache.GetAnomalyScores(_radHelper, groupID, _startTime.Value, _endTime.Value, _skipCache);
 			}
 			catch (Exception e)
 			{

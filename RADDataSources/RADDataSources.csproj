@@ -13,8 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.5.4.2" />
-    <PackageReference Include="Skyline.DataMiner.Utils.RadToolkit" Version="1.0.0" />
-    <PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.1.0">
+    <PackageReference Include="Skyline.DataMiner.Utils.RadToolkit" Version="1.0.0-directconnection2" />
+    <PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

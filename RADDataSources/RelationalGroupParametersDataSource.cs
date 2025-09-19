@@ -27,12 +27,14 @@ namespace RadDataSources
 		private string _subGroupName = string.Empty;
 		private Guid _subGroupID = Guid.Empty;
 		private List<RadParameter> _parameters = new List<RadParameter>();
-		private ConnectionHelper _connectionHelper;
+		private GQIDMS _dms;
+		private RadHelper _radHelper;
 
 		public OnInitOutputArgs OnInit(OnInitInputArgs args)
 		{
-			_connectionHelper = new ConnectionHelper(args.DMS, args.Logger);
 			_logger = args.Logger;
+			_dms = args.DMS;
+			_radHelper = ConnectionHelper.InitializeRadHelper(_dms, _logger);
 			return default;
 		}
 
@@ -60,8 +62,8 @@ namespace RadDataSources
 
 		public OnPrepareFetchOutputArgs OnPrepareFetch(OnPrepareFetchInputArgs args)
 		{
-			_elementNamesCache = new ElementNameCache(_logger, _connectionHelper);
-			_parametersCache = new ParametersCache(_logger, _connectionHelper);
+			_elementNamesCache = new ElementNameCache(_logger, _dms);
+			_parametersCache = new ParametersCache(_logger, _dms);
 
 			if (string.IsNullOrEmpty(_groupName))
 			{
@@ -72,7 +74,7 @@ namespace RadDataSources
 
 			try
 			{
-				var groupInfo = _connectionHelper.RadHelper.FetchParameterGroupInfo(_dataMinerID, _groupName);
+				var groupInfo = _radHelper.FetchParameterGroupInfo(_dataMinerID, _groupName);
 				if (groupInfo == null)
 					throw new DataMinerCommunicationException($"Group '{_groupName}' not found on DataMiner ID {_dataMinerID}");
 				if (groupInfo.Subgroups == null || groupInfo.Subgroups.Count == 0)
